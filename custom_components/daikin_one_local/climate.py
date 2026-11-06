@@ -104,7 +104,7 @@ class DaikinOneLocalClimate(DaikinOneLocalEntity, ClimateEntity):
         return self.coordinator.data.get("tempUnits", 0) == 0
 
     @property
-    def temperature_unit(self) -> str:
+    def native_temperature_unit(self) -> str:
         return UnitOfTemperature.FAHRENHEIT if self._fahrenheit else UnitOfTemperature.CELSIUS
 
     @property
@@ -171,7 +171,7 @@ class DaikinOneLocalClimate(DaikinOneLocalEntity, ClimateEntity):
         return STATE_TO_ACTION.get(self._d.get("state"))
 
     @property
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         c = self._d.get("spaceTemp")
         if c is None:
             return None
@@ -182,7 +182,7 @@ class DaikinOneLocalClimate(DaikinOneLocalEntity, ClimateEntity):
         return self._d.get("spaceHum")
 
     @property
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         mode = self._d.get("mode")
         if mode == MODE_COOL:
             return self._out(self._d.get("coolSetpoint"))
@@ -191,11 +191,11 @@ class DaikinOneLocalClimate(DaikinOneLocalEntity, ClimateEntity):
         return None
 
     @property
-    def target_temperature_high(self) -> float | None:
+    def native_target_temperature_high(self) -> float | None:
         return self._out(self._d.get("coolSetpoint")) if self._d.get("mode") == MODE_AUTO else None
 
     @property
-    def target_temperature_low(self) -> float | None:
+    def native_target_temperature_low(self) -> float | None:
         return self._out(self._d.get("heatSetpoint")) if self._d.get("mode") == MODE_AUTO else None
 
     @property
@@ -274,3 +274,18 @@ class DaikinOneLocalClimate(DaikinOneLocalEntity, ClimateEntity):
             self._last_on_mode = self.hvac_mode
         super()._handle_coordinator_update()
 
+
+
+# Home Assistant 2026.11 renamed the climate temperature properties with a
+# native_ prefix; the old names stop working in 2027.11. On older cores,
+# expose the same implementations under the old names so both work, without
+# triggering the deprecation warning on new cores.
+if not hasattr(ClimateEntity, "native_current_temperature"):  # pragma: no cover
+    for _old in (
+        "temperature_unit",
+        "current_temperature",
+        "target_temperature",
+        "target_temperature_high",
+        "target_temperature_low",
+    ):
+        setattr(DaikinOneLocalClimate, _old, getattr(DaikinOneLocalClimate, f"native_{_old}"))
