@@ -1,0 +1,21 @@
+{
+  "config": {
+    "flow_title": "{name}",
+    "step": {
+      "user": {
+        "title": "Daikin One (Local API)",
+        "description": "Enable the Local API on the thermostat first: Settings > Wi-Fi > Local API.",
+        "data": {"host": "IP address or hostname", "port": "Port"}
+      },
+      "confirm": {"description": "Add the Daikin One thermostat {name}?"}
+    },
+    "error": {"cannot_connect": "Could not reach the thermostat's Local API. Check that it is enabled and the IP is correct."},
+    "abort": {
+      "already_configured": "This thermostat is already configured.",
+      "cannot_connect": "Could not reach the thermostat's Local API."
+    }
+  },
+  "options": {
+    "step": {"init": {"data": {"scan_interval": "Polling interval (seconds)"}}}
+  }
+}

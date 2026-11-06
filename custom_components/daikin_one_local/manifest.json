@@ -1,0 +1,33 @@
+{
+  "domain": "daikin_one_local",
+  "name": "Daikin One Local",
+  "codeowners": ["@saxonthebeach908"],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/saxonthebeach908/ha-daikin-one-local",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "requirements": [],
+  "version": "0.1.0",
+  "zeroconf": [
+    {
+      "type": "_http._tcp.local.",
+      "properties": {
+        "brand": "dk"
+      }
+    },
+    {
+      "type": "_http._tcp.local.",
+      "properties": {
+        "brand": "daikin*"
+      }
+    },
+    {
+      "type": "_http._tcp.local.",
+      "properties": {
+        "brand": "amana*"
+      }
+    }
+  ],
+  "issue_tracker": "https://github.com/saxonthebeach908/ha-daikin-one-local/issues"
+}
