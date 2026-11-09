@@ -29,6 +29,27 @@ class DaikinOneLocalCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:
-            return await self.client.get_info()
+            data = await self.client.get_info()
         except DaikinOneLocalError as err:
             raise UpdateFailed(str(err)) from err
+        return _sanitize(data)
+
+
+# Plausible ranges. Right after a reboot the thermostat reports 255 for
+# sensors it has not read yet (seen 2026-11-08: spaceTemp 255, spaceHum 255).
+_VALID_RANGES = {
+    "spaceTemp": (-40.0, 60.0),  # deg C
+    "spaceHum": (0.0, 100.0),  # %
+}
+
+
+def _sanitize(data: dict[str, Any]) -> dict[str, Any]:
+    """Replace sentinel or out-of-range sensor values with None."""
+    for key, (lo, hi) in _VALID_RANGES.items():
+        value = data.get(key)
+        if value is None:
+            continue
+        if not isinstance(value, (int, float)) or not lo <= value <= hi:
+            _LOGGER.debug("Ignoring invalid %s=%r from thermostat", key, value)
+            data[key] = None
+    return data

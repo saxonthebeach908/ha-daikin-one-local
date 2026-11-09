@@ -44,3 +44,18 @@ async def test_real_range_write_empty_body(hass, aioclient_mock):
         {"entity_id": eid, "target_temp_low": 68, "target_temp_high": 75}, blocking=True)
     body = [c for c in aioclient_mock.mock_calls if c[0] == "POST"][-1][2]
     assert body == {"heatSetpoint": "20.0", "coolSetpoint": "23.9"}
+
+
+async def test_reboot_sentinel_values_ignored(hass, aioclient_mock):
+    hass.config.units = US_CUSTOMARY_SYSTEM
+    aioclient_mock.get(f"{BASE}/", json=ROOT)
+    aioclient_mock.get(f"{BASE}/query/info", json={**INFO, "spaceTemp": 255, "spaceHum": 255})
+    e = MockConfigEntry(domain=DOMAIN, data={CONF_HOST: HOST, CONF_PORT: DEFAULT_PORT})
+    e.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(e.entry_id)
+    await hass.async_block_till_done()
+    s = hass.states.get(hass.states.async_entity_ids("climate")[0])
+    assert s.attributes["current_temperature"] is None
+    assert s.attributes.get("current_humidity") is None
+    temp = [i for i in hass.states.async_entity_ids("sensor") if "temperature" in i][0]
+    assert hass.states.get(temp).state == "unknown"

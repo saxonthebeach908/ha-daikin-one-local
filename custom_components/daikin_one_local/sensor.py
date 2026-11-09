@@ -21,7 +21,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: DaikinConfigEntry, async
         TempSensor(c, entry.entry_id),
         EquipmentState(c, entry.entry_id),
     ]
-    if c.data.get("spaceHum") is not None:
+    if "spaceHum" in c.data:  # key present even if this reading was invalid
         ents.append(HumSensor(c, entry.entry_id))
     async_add_entities(ents)
 
